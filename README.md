@@ -3,7 +3,7 @@
 
 **세계 데이터 지도**는 인구, 면적, 지니 계수 등 다양한 국가별 통계 데이터를 시각화하는 대화형 코로플레스(Choropleth) 지도 애플리케이션입니다. D3.js를 사용하여 데이터를 동적으로 시각화하고, Google Gemini API를 통합하여 AI 기반의 심층적인 데이터 분석 및 지도 제어 기능을 제공합니다.
 
-실행주소1 : https://world-data-map.vercel.app/
+실행주소1 : https://sigco3111.github.io/world-data-map/
 
 실행주소2 : https://dev-canvas-pi.vercel.app/
 

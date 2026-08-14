@@ -496,45 +496,48 @@ const App: React.FC = () => {
     fetchAtlasData();
   }, []);
 
-  // Effect for fetching country statistics from REST Countries API
+  // Effect for fetching country statistics from local bundled data
+  // (replaces deprecated restcountries.com v3.1 — now uses pre-bundled JSON in public/countries.json)
   useEffect(() => {
     const fetchCountryStats = async () => {
         if (!geographies || geographies.length === 0) return;
         try {
           setMapError(null);
-          const response = await fetch('https://restcountries.com/v3.1/all?fields=name,capital,population,area,gini,region,subregion,currencies,languages');
-          if (!response.ok) throw new Error(`REST Countries API에서 데이터를 가져오는 데 실패했습니다: ${response.statusText}`);
-          const data = await response.json();
-          const statsMap = data.reduce((acc: Record<string, CountryStats>, country: any) => {
-              const giniValue = country.gini ? parseFloat(Object.values(country.gini)[0] as string) : undefined;
-              const stat: CountryStats = {
-                  population: country.population,
-                  area: country.area,
-                  capital: country.capital?.[0] || 'N/A',
-                  gini: isNaN(giniValue) ? undefined : giniValue,
-                  region: country.region,
-                  subregion: country.subregion,
-                  currencies: country.currencies ? Object.values(country.currencies).map((c: any) => c.name).join(', ') : undefined,
-                  languages: country.languages ? Object.values(country.languages).join(', ') : undefined,
-              };
-              if (country.name.common) acc[country.name.common] = stat;
-              if (country.name.official) acc[country.name.official] = stat;
-              return acc;
-          }, {});
+          const response = await fetch(`${import.meta.env.BASE_URL}countries.json`);
+          if (!response.ok) throw new Error(`번들된 국가 통계 파일을 가져오는 데 실패했습니다: ${response.statusText}`);
+          const data: Array<{ name: string; capital: string; population?: number; area?: number; gini?: number; currencies?: string }> = await response.json();
+          const statsMap: Record<string, CountryStats> = {};
+          for (const country of data) {
+            const stat: CountryStats = {
+                population: country.population,
+                area: country.area,
+                capital: country.capital || 'N/A',
+                gini: country.gini,
+                currencies: country.currencies,
+            };
+            statsMap[country.name] = stat;
+          }
 
-          if (statsMap['United States']) statsMap['United States of America'] = statsMap['United States'];
-          if (statsMap['DR Congo']) statsMap['Dem. Rep. Congo'] = statsMap['DR Congo'];
-          if (statsMap['South Sudan']) statsMap['S. Sudan'] = statsMap['South Sudan'];
-          if (statsMap['Central African Republic']) statsMap['Central African Rep.'] = statsMap['Central African Republic'];
-          if (statsMap['Equatorial Guinea']) statsMap['Eq. Guinea'] = statsMap['Equatorial Guinea'];
-          if (statsMap['Dominican Republic']) statsMap['Dominican Rep.'] = statsMap['Dominican Republic'];
-          if (statsMap['Western Sahara']) statsMap['W. Sahara'] = statsMap['Western Sahara'];
-          if (statsMap['Bosnia and Herzegovina']) statsMap['Bosnia and Herz.'] = statsMap['Bosnia and Herzegovina'];
-          if (statsMap['Solomon Islands']) statsMap['Solomon Is.'] = statsMap['Solomon Islands'];
-          if (statsMap['Russia']) statsMap['Russian Federation'] = statsMap['Russia'];
+          // Map countriesnow / world-atlas country names to bundled names
+          // (preserves original restcountries name aliases)
+          const aliasMap: Record<string, string> = {
+              'United States of America': 'United States',
+              'Dem. Rep. Congo': 'DR Congo',
+              'S. Sudan': 'South Sudan',
+              'Central African Rep.': 'Central African Republic',
+              'Eq. Guinea': 'Equatorial Guinea',
+              'Dominican Rep.': 'Dominican Republic',
+              'W. Sahara': 'Western Sahara',
+              'Bosnia and Herz.': 'Bosnia and Herzegovina',
+              'Solomon Is.': 'Solomon Islands',
+              'Russian Federation': 'Russia',
+          };
+          for (const [atlasName, bundledName] of Object.entries(aliasMap)) {
+              if (statsMap[bundledName]) statsMap[atlasName] = statsMap[bundledName];
+          }
           setCountryStats(statsMap);
         } catch (e) {
-          console.error("REST Countries API error:", e);
+          console.error("Country stats error:", e);
           setMapError("국가 통계 데이터를 가져오는 데 실패했습니다.");
           setCountryStats({});
         }

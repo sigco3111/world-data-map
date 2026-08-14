@@ -2,8 +2,8 @@
 <svg 
   xmlns="http://www.w3.org/2000/svg" 
   viewBox="0 0 100 100" 
-  width="32" 
-  height="32">
+  width="100" 
+  height="100">
   <!-- 지구본 배경 -->
   <circle cx="50" cy="50" r="45" fill="#2563eb" stroke="#1d4ed8" stroke-width="2"/>
   
@@ -13,4 +13,4 @@
   
   <!-- 간단한 대륙 모양 -->
   <path d="M30,30 Q40,20 50,35 T70,40 Q80,50 60,70 T30,60 Q20,40 30,30" fill="#10b981" stroke="#059669" stroke-width="1"/>
-</svg> 
+</svg>
